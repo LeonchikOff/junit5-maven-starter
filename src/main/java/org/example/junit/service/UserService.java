@@ -1,5 +1,6 @@
 package org.example.junit.service;
 
+import org.example.junit.dao.UserDao;
 import org.example.junit.model.User;
 
 import java.util.*;
@@ -8,8 +9,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class UserService {
+    private final UserDao userDao;
 
     private final List<User> users = new ArrayList<>();
+
+    public UserService(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
 
     public List<User> getAll() {
         return users;
@@ -19,8 +26,12 @@ public class UserService {
         this.users.addAll(Arrays.asList(users));
     }
 
+    public boolean delete(Integer userId) {
+        return userDao.delete(userId);
+    }
+
     public Optional<User> login(String username, String password) {
-        if(username == null || password == null) {
+        if (username == null || password == null) {
             throw new IllegalArgumentException("username or password is null");
         }
         return users.stream()

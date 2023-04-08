@@ -1,12 +1,11 @@
-package org.example.junit.paramresolver;
+package org.example.junit.extension;
 
+import org.example.junit.dao.UserDao;
 import org.example.junit.service.UserService;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-
-import java.util.function.Function;
 
 public class UserServiceParamResolver implements ParameterResolver {
     @Override
@@ -19,6 +18,6 @@ public class UserServiceParamResolver implements ParameterResolver {
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
         ExtensionContext.Store userServiceStore = extensionContext.getStore(ExtensionContext.Namespace.create(UserService.class));
-        return userServiceStore.getOrComputeIfAbsent(UserService.class, userServiceClass -> new UserService());
+        return userServiceStore.getOrComputeIfAbsent(UserService.class, userServiceClass -> new UserService(new UserDao()));
     }
 }

@@ -1,13 +1,17 @@
 package org.example.junit.service;
 
+import org.example.junit.dao.UserDao;
+import org.example.junit.extension.UserServiceParamResolver;
 import org.example.junit.model.User;
-import org.example.junit.paramresolver.UserServiceParamResolver;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.*;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @Tag("userService")
 @TestMethodOrder(MethodOrderer.Random.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(UserServiceParamResolver.class)
+@ExtendWith({
+        UserServiceParamResolver.class,
+        MockitoExtension.class})
 class UserServiceTest {
 
     private static final User L = User.of(1, "L", "123");
@@ -29,6 +35,9 @@ class UserServiceTest {
     private static final User N = User.of(4, "N", "456");
     private static final User LEON = User.of(5, "LEON", "1993");
 
+    @Mock
+    private UserDao userDao;
+    @InjectMocks
     private UserService userService;
 
     @BeforeAll
@@ -37,16 +46,25 @@ class UserServiceTest {
     }
 
     @BeforeEach
-    void prepare(UserService userService) {
+    void prepare() {
         System.out.println("BeforeEach: " + this);
-        this.userService = userService;
+//        this.userDao = Mockito.mock(UserDao.class);
+//        this.userDao = Mockito.spy(new UserDao());
+//        this.userService = new UserService(userDao);
 
+    }
+
+    @Test
+    void shouldDeleteExistedUser() {
+        userService.add(LEON);
+        Mockito.doReturn(true).when(userDao).delete(LEON.getId());
+        assertThat(userService.delete(LEON.getId())).isTrue();
     }
 
     @Test
     void getAllUsersEmptyIfNoUsersAdded() {
         System.out.println("(Test 1) getAllUsersEmptyIfNoUsersAdded: " + this);
-        userService = new UserService();
+        userService = new UserService(null);
         List<User> users = userService.getAll();
         assertTrue(users.isEmpty(), "List<User> should be empty");
     }
@@ -56,7 +74,7 @@ class UserServiceTest {
         userService.add(L, E, O, N, LEON);
         Map<Integer, User> allConvertedUsersById = userService.getAllConvertedById();
 
-        MatcherAssert.assertThat(allConvertedUsersById, IsMapContaining.hasKey(LEON.getId()));
+//        MatcherAssert.assertThat(allConvertedUsersById, IsMapContaining.hasKey(LEON.getId()));
 
         assertAll(
                 () -> assertThat(allConvertedUsersById)
